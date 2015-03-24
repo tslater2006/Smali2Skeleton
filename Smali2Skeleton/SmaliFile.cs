@@ -180,9 +180,13 @@ namespace Smali2Skeleton
             var collection = methodRegex.Matches(SmaliText);
             foreach (Match m in collection)
             {
-                SmaliConstructor method = new SmaliConstructor();
-                method.Modifiers = m.Groups["modifiers"].Value.Trim().Replace("synthetic", "/* synthetic */");
-                method.ClassName = this.ClassName;
+                SmaliConstructor constructor = new SmaliConstructor();
+                constructor.Modifiers = m.Groups["modifiers"].Value.Trim().Replace("synthetic", "/* synthetic */");
+                if (constructor.Modifiers.Contains("static"))
+                {
+                    continue;
+                }
+                constructor.ClassName = this.ClassName;
                 string paramString = m.Groups["params"].Value.Trim();
                 Regex paramSplit = new Regex("([ZBSCIJFD]|\\[[ZBSCIJFD]|L.*?;|\\[L.*?;)");
                 string[] parms = paramSplit.Split(paramString).Where(s => s != String.Empty).ToArray();
@@ -215,9 +219,9 @@ namespace Smali2Skeleton
                         param.Name = paramNames[x];
                     }
                     param.Type = parms[x];
-                    method.Parameters.Add(param);
+                    constructor.Parameters.Add(param);
                 }
-                Constructors.Add(method);
+                Constructors.Add(constructor);
 
             }
         }
@@ -436,26 +440,19 @@ namespace Smali2Skeleton
         public override string ToString()
         {
             StringBuilder sb = new StringBuilder();
-            if (Modifiers.Contains("static"))
+            sb.Append(Modifiers + " " + ClassName + "(");
+            for (var x = 0; x < Parameters.Count; x++)
             {
-                // static constructor
-                sb.Append("static {}");
-            }
-            else
-            {
-                sb.Append(Modifiers + " " + ClassName + "(");
-                for (var x = 0; x < Parameters.Count; x++)
+                sb.Append(Parameters[x]);
+                if (x < Parameters.Count - 1)
                 {
-                    sb.Append(Parameters[x]);
-                    if (x < Parameters.Count - 1)
-                    {
-                        sb.Append(", ");
-                    }
+                    sb.Append(", ");
                 }
-                sb.Append(") { }");
             }
+            sb.Append(") { }");
             return sb.ToString();
         }
+            
     }
 
     public class SmaliParameter
