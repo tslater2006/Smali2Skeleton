@@ -44,7 +44,23 @@ namespace Smali2Skeleton.Tests
             String smaliText = File.ReadAllText("Tests\\Files\\GifAnimationDrawable.smali");
             SmaliFile file = new SmaliFile(smaliText);
 
-            File.WriteAllText("drawable.txt", file.ToString());
+            File.WriteAllText("Tests\\Results\\GifAnimationDrawable.java", file.ToString());
+
+            //Assert.AreEqual(17, file.Methods.Count);
+        }
+
+        [Test]
+        public void TestSkeletonGeneration()
+        {
+            String smaliText = File.ReadAllText("Tests\\Files\\GifAnimationDrawable.smali");
+            SmaliFile file = new SmaliFile(smaliText);
+
+            File.WriteAllText("Tests\\Results\\GifAnimationDrawable.java", file.ToString());
+
+            smaliText = File.ReadAllText("Tests\\Files\\Utility.smali");
+            file = new SmaliFile(smaliText);
+
+            File.WriteAllText("Tests\\Results\\Utility.java", file.ToString());
 
             //Assert.AreEqual(17, file.Methods.Count);
         }
