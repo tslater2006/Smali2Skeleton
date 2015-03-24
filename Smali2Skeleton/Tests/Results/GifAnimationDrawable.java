@@ -1,8 +1,13 @@
 package com.perk.livetv.aphone.utils;
 
 import android.graphics;
+import java.io;
 
 public class GifAnimationDrawable extends android.graphics.drawable.AnimationDrawable {
+	public GifAnimationDrawable(File f) { }
+	public GifAnimationDrawable(File f, boolean inline) { }
+	public GifAnimationDrawable(InputStream is) { }
+	public GifAnimationDrawable(InputStream is, boolean inline) { }
 	private boolean decoded;
 	private int height;
 	private Runnable loader;

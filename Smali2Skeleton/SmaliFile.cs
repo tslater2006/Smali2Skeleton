@@ -16,6 +16,7 @@ namespace Smali2Skeleton
         public HashSet<String> Imports = new HashSet<string>();
         public List<SmaliField> Fields = new List<SmaliField>();
         public List<SmaliMethod> Methods = new List<SmaliMethod>();
+        public List<SmaliConstructor> Constructors = new List<SmaliConstructor>();
         private string SmaliText;
         public SmaliFile(String smaliText)
         {
@@ -35,6 +36,7 @@ namespace Smali2Skeleton
 
             ParseFields();
             ParseMethods();
+            ParseConstructors();
             ProcessImports();
         }
 
@@ -55,7 +57,24 @@ namespace Smali2Skeleton
                     
                 }
             }
-
+            /* process constructors */
+            foreach (SmaliConstructor m in Constructors)
+            {
+                /* process parameters */
+                foreach (SmaliParameter p in m.Parameters)
+                {
+                    if (p.Type.Contains("."))
+                    {
+                        /* this item seems to be a packaged object, lets extract package name :) */
+                        string package = p.Type.Substring(0, p.Type.LastIndexOf("."));
+                        p.Type = p.Type.Replace(package + ".", "");
+                        if (package.Equals(this.Package) == false)
+                        {
+                            Imports.Add(package);
+                        }
+                    }
+                }
+            }
             /* process methods */
             foreach (SmaliMethod m in Methods)
             {
@@ -154,6 +173,55 @@ namespace Smali2Skeleton
                 Methods.Add(method);
             }
         }
+
+        private void ParseConstructors()
+        {
+            Regex methodRegex = new Regex(".method (?<modifiers>.*?)\\ constructor.*?\\((?<params>.*)\\)V");
+            var collection = methodRegex.Matches(SmaliText);
+            foreach (Match m in collection)
+            {
+                SmaliConstructor method = new SmaliConstructor();
+                method.Modifiers = m.Groups["modifiers"].Value.Trim().Replace("synthetic", "/* synthetic */");
+                method.ClassName = this.ClassName;
+                string paramString = m.Groups["params"].Value.Trim();
+                Regex paramSplit = new Regex("([ZBSCIJFD]|\\[[ZBSCIJFD]|L.*?;|\\[L.*?;)");
+                string[] parms = paramSplit.Split(paramString).Where(s => s != String.Empty).ToArray();
+                for (var x = 0; x < parms.Length; x++)
+                {
+                    DecodeType(ref parms[x]);
+                }
+
+                int endMethodLocation = SmaliText.IndexOf(".end method", m.Index);
+                string methodText = SmaliText.Substring(m.Index, endMethodLocation - m.Index);
+
+                Regex paramRegex = new Regex(".param.*?,\\ \"(?<paramName>.*?)\"");
+                var paramMatches = paramRegex.Matches(methodText);
+                List<string> paramNames = new List<string>();
+
+                foreach (Match p in paramMatches)
+                {
+                    paramNames.Add(p.Groups["paramName"].Value.Trim());
+                }
+
+                for (var x = 0; x < parms.Length; x++)
+                {
+                    SmaliParameter param = new SmaliParameter();
+                    if (x >= paramNames.Count)
+                    {
+                        param.Name = "param" + (x + 1);
+                    }
+                    else
+                    {
+                        param.Name = paramNames[x];
+                    }
+                    param.Type = parms[x];
+                    method.Parameters.Add(param);
+                }
+                Constructors.Add(method);
+
+            }
+        }
+
         private static void DecodeType(ref string type)
         {
             if (type.Length == 0) { return; }
@@ -232,6 +300,19 @@ namespace Smali2Skeleton
 
             /* open class */
             sb.Append(" {\r\n");
+
+            /* write out the constructors */
+            /* write out the methods */
+            foreach (SmaliConstructor m in Constructors)
+            {
+                string methodText = m.ToString();
+                string[] lines = methodText.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                for (var x = 0; x < lines.Length; x++)
+                {
+                    sb.Append("\t").Append(lines[x]).Append("\r\n");
+                }
+            }
+
 
             /* write out the fields */
             foreach (SmaliField f in Fields)
@@ -342,6 +423,37 @@ namespace Smali2Skeleton
             }
             sb.Append(returnStatement).Append("\r\n}");
             
+            return sb.ToString();
+        }
+    }
+
+    public class SmaliConstructor
+    {
+        public string ClassName;
+        public string Modifiers;
+        public List<SmaliParameter> Parameters = new List<SmaliParameter>();
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+            if (Modifiers.Contains("static"))
+            {
+                // static constructor
+                sb.Append("static {}");
+            }
+            else
+            {
+                sb.Append(Modifiers + " " + ClassName + "(");
+                for (var x = 0; x < Parameters.Count; x++)
+                {
+                    sb.Append(Parameters[x]);
+                    if (x < Parameters.Count - 1)
+                    {
+                        sb.Append(", ");
+                    }
+                }
+                sb.Append(") { }");
+            }
             return sb.ToString();
         }
     }

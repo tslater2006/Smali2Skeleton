@@ -4,6 +4,8 @@ import android.content;
 import java.io;
 
 public class Utils {
+	static {}
+	public Utils() { }
 	private static final String[] HOSTS_FILES;
 	private static final String[] HOSTS_FILE_PATTERNS;
 	static ApplicationUtils appUtils = null;
