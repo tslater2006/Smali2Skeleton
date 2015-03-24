@@ -49,10 +49,14 @@ namespace Smali2Skeleton
                 {
                     /* this item seems to be a packaged object, lets extract package name :) */
                     string package = f.Type.Substring(0, f.Type.LastIndexOf("."));
-                    f.Type = f.Type.Replace(package + ".", "");
                     if (package.Equals(this.Package) == false)
                     {
-                        Imports.Add(package);
+                        Imports.Add(f.Type);
+                        f.Type = f.Type.Replace(package + ".", "");
+                    }
+                    else
+                    {
+                        f.Type = f.Type.Replace(package + ".", "");
                     }
                     
                 }
@@ -67,10 +71,14 @@ namespace Smali2Skeleton
                     {
                         /* this item seems to be a packaged object, lets extract package name :) */
                         string package = p.Type.Substring(0, p.Type.LastIndexOf("."));
-                        p.Type = p.Type.Replace(package + ".", "");
                         if (package.Equals(this.Package) == false)
                         {
-                            Imports.Add(package);
+                            Imports.Add(p.Type);
+                            p.Type = p.Type.Replace(package + ".", "");
+                        }
+                        else
+                        {
+                            p.Type = p.Type.Replace(package + ".", "");
                         }
                     }
                 }
@@ -85,10 +93,14 @@ namespace Smali2Skeleton
                     {
                         /* this item seems to be a packaged object, lets extract package name :) */
                         string package = p.Type.Substring(0, p.Type.LastIndexOf("."));
-                        p.Type = p.Type.Replace(package + ".", "");
                         if (package.Equals(this.Package) == false)
                         {
-                            Imports.Add(package);
+                            Imports.Add(p.Type);
+                            p.Type = p.Type.Replace(package + ".", "");
+                        }
+                        else
+                        {
+                            p.Type = p.Type.Replace(package + ".", "");
                         }
                     }
                 }
@@ -98,10 +110,14 @@ namespace Smali2Skeleton
                 {
                     /* this item seems to be a packaged object, lets extract package name :) */
                     string package = m.ReturnType.Substring(0, m.ReturnType.LastIndexOf("."));
-                    m.ReturnType = m.ReturnType.Replace(package + ".", "");
                     if (package.Equals(this.Package) == false)
                     {
-                        Imports.Add(package);
+                        Imports.Add(m.ReturnType);
+                        m.ReturnType = m.ReturnType.Replace(package + ".", "");
+                    }
+                    else
+                    {
+                        m.ReturnType = m.ReturnType.Replace(package + ".", "");
                     }
                 }
             }
